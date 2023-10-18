@@ -2,13 +2,12 @@ import os
 import re
 import time
 import glob
-import pandas as pd
 import logging
 import bu_alerts
+import pandas as pd
 import xlwings as xw
-from tabula import read_pdf
 import xlwings.constants as win32c
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 
 drive = r"J:\India"
@@ -192,14 +191,14 @@ def mrn(inventory_wb,mrn_wb):
 
 
     
-def in_out_inv(inv_path,inventory_wb,working_total_rw):
+def in_out_inv(inv_path,inventory_wb):
     try:  
         outbound_inv =  inventory_wb.sheets['Outbound']  
         try:
             if len(glob.glob(inv_path+"\\*.xls"))>0:   
                 for file in glob.glob(inv_path+"\\*.xls"):
                     path, file_name = os.path.split(file)
-                    inbound_file_name = file_name
+                    inout_inv_file_name = file_name
                     try:
                         outbound_wb = xlOpner(file)
                     except Exception as e:
@@ -341,7 +340,7 @@ def in_out_inv(inv_path,inventory_wb,working_total_rw):
                     col+=1
         costing_inv.range(f"A2:K2").copy(costing_inv.range(f"A2:K{last_row}"))
 
-        return inbound_file_name,outbound_file_name
+        return inout_inv_file_name
     except Exception as e:
         raise e
 
@@ -349,11 +348,10 @@ def in_out_inv(inv_path,inventory_wb,working_total_rw):
 if __name__ == "__main__":
     try:
 
-        job_name="Ft Lauderdale_INV_AUTOMATION"
+        job_name="BIO_PAD01_Ft Lauderdale_INV_AUTOMATION"
         # log progress --
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
-        # logfile = os.getcwd() +"\\logs\\"+'Enverus_Logfile'+str(today_date)+'.txt'
 
         logfile = os.getcwd() + '\\' + 'logs' + '\\' + f'{job_name}.txt'
 
@@ -367,7 +365,7 @@ if __name__ == "__main__":
         logging.info("Execution Started")
 
         locations_list = []
-        # logging.info('setting paTH TO download')
+        # logging.info('setting receiver_email')
         receiver_email = "yashn.jain@biourja.com"
         # receiver_email = "yashn.jain@biourja.com,imam.khan@biourja.com,apoorva.kansara@biourja.com, accounts@biourja.com, rini.gohil@biourja.com,itdevsupport@biourja.com"
 
@@ -376,7 +374,7 @@ if __name__ == "__main__":
         today_date=date.today()
         inv_path = r'J:\India\Inv Rpt\IT_INVENTORY\flows\Ft Lauderdale'
         if len(glob.glob(inv_path+"\\*.xls"))>0:
-            inv_file = glob.glob(inv_path+"\\*.xls")[0]
+            inv_file = glob.glob(inv_path+"\\*.xls")[0]    
             pathinv, file_name_inv = os.path.split(inv_file)
             year = today_date.year
             pre_month = int(re.findall("\d+",file_name_inv)[0]) - 1
@@ -386,14 +384,14 @@ if __name__ == "__main__":
             date_fldr = today_date.strftime("%m-%y")
             small_yr = today_date.strftime("%y")
         else:
-            logging.info(f"inventort report not found ::: {inv_path}")   
+            logging.info(f"inventory report not found ::: {inv_path}")   
             locations_list.append(logfile)
             bu_alerts.send_mail(receiver_email = receiver_email,mail_subject =f'JOB SUCCESS - {job_name}',mail_body = f'{job_name} completed successfully,Inventory file not found here ::: {inv_path}',multiple_attachment_list = locations_list)
                  
 
         inventory_sheet = drive+rf'\{year}\{date_fldr}'+f'\\Ft Lauderdale Tload.xlsx'
         if not os.path.exists(inventory_sheet):
-            
+
             logging.info(f"{inventory_sheet} Excel file not present")           
 
         mrn_sheet = drive+rf'\{year}\{date_fldr}'+f'\\MRN.xlsx'
@@ -458,18 +456,18 @@ if __name__ == "__main__":
         print("sales and mrn done")
 
         try:
-            inbound_file_name,outbound_file_name = in_out_inv(inv_path,inventory_wb,working_total_rw)
+            inout_inv_file_name = in_out_inv(inv_path,inventory_wb)
         except Exception as e:
             logging.info(f"Inbound/Outbound Tab Failure : {e}")
             raise e        
         print("Done")
         
-        output_location = rf'J:\India\Inv Rpt\IT_INVENTORY\Output\{year}\{date_fldr}\Lakes Charles'
+        output_location = rf'J:\India\Inv Rpt\IT_INVENTORY\Output\{year}\{date_fldr}\Lauderdale'
         if not os.path.exists(output_location):
             os.makedirs(output_location)
 
         try:
-            inventory_wb.save(f"{output_location}\\Lake Charles Tank.xlsx")
+            inventory_wb.save(f"{output_location}\\Ft Lauderdale Tload.xlsx")
             print(f"inventory done and saved in {output_location}")
             wb_name = inventory_wb.name
             inventory_wb.app.quit()
@@ -483,10 +481,10 @@ if __name__ == "__main__":
         remove_existing_files(inv_path)
         logging.info(f"files succesfully removed from folder :::: {inv_path}")
         locations_list.append(logfile)
-        locations_list.append(f"{output_location}\\Lake Charles Tank.xlsx")
+        locations_list.append(f"{output_location}\\Ft Lauderdale Tload.xlsx")
         nl = '<br>'
         body = ''
-        body = (f'{nl}<strong>{wb_name}</strong> {nl}{nl} <strong>{wb_name}</strong> successfully created from reports <strong>{inbound_file_name},{outbound_file_name}</strong>, {nl} Attached path for the excel=<u>{output_location}</u>{nl}')
+        body = (f'{nl}<strong>{wb_name}</strong> {nl}{nl} <strong>{wb_name}</strong> successfully created from reports <strong>{inout_inv_file_name}</strong>, {nl} Attached path for the excel=<u>{output_location}</u>{nl}')
         bu_alerts.send_mail(receiver_email = receiver_email,mail_subject =f'JOB SUCCESS - {job_name}',mail_body = f'{body}{job_name} completed successfully, Attached Logs and Excel',multiple_attachment_list = locations_list)
         logging.info("Process completed")
         print("process completed")
