@@ -366,8 +366,8 @@ if __name__ == "__main__":
 
         locations_list = []
         # logging.info('setting receiver_email')
-        receiver_email = "yashn.jain@biourja.com"
-        # receiver_email = "yashn.jain@biourja.com,imam.khan@biourja.com,apoorva.kansara@biourja.com, accounts@biourja.com, rini.gohil@biourja.com,itdevsupport@biourja.com"
+        # receiver_email = "yashn.jain@biourja.com"
+        receiver_email = "yashn.jain@biourja.com,imam.khan@biourja.com,apoorva.kansara@biourja.com, accounts@biourja.com, rini.gohil@biourja.com,itdevsupport@biourja.com"
 
 
         time_start=time.time()
