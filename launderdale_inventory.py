@@ -480,6 +480,7 @@ if __name__ == "__main__":
         time.sleep(2)
         remove_existing_files(inv_path)
         logging.info(f"files succesfully removed from folder :::: {inv_path}")
+        print("process completed")
         locations_list.append(logfile)
         locations_list.append(f"{output_location}\\Ft Lauderdale Tload.xlsx")
         nl = '<br>'
